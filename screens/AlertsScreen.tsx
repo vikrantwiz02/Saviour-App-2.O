@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   SafeAreaView,
   StatusBar,
 } from "react-native"
-import { useNavigation, useFocusEffect } from "@react-navigation/native"
+import { useNavigation, useIsFocused } from "@react-navigation/native"
 import { Ionicons, MaterialIcons } from "@expo/vector-icons"
 import * as Location from "expo-location"
 import { type Alert, getUserAlerts, markAlertAsRead, subscribeToAlerts } from "../services/alertService"
@@ -26,6 +26,7 @@ const AlertsScreen = () => {
   const [locationPermission, setLocationPermission] = useState<boolean | null>(null)
 
   const navigation = useNavigation()
+  const isFocused = useIsFocused()
 
   // Request location permission
   const requestLocationPermission = async () => {
@@ -109,12 +110,11 @@ const AlertsScreen = () => {
   }, [])
 
   // Fetch alerts when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
+  useEffect(() => {
+    if (isFocused && locationPermission !== null) {
       fetchWeatherAlerts()
-      return undefined
-    }, [locationPermission]),
-  )
+    }
+  }, [isFocused, locationPermission])
 
   // Render alert severity icon
   const renderSeverityIcon = (severity: string) => {
