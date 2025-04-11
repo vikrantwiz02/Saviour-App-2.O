@@ -12,12 +12,17 @@ import {
   SafeAreaView,
   StatusBar,
 } from "react-native"
-import { useNavigation, useIsFocused } from "@react-navigation/native"
+import { useNavigation } from "@react-navigation/native"
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { Ionicons, MaterialIcons } from "@expo/vector-icons"
 import * as Location from "expo-location"
 import { type Alert, getUserAlerts, markAlertAsRead, subscribeToAlerts } from "../services/alertService"
 import { fetchWeatherByCoords } from "../services/weatherService"
 import { saveAlertsToFirestore } from "../services/alertService"
+import type { RootStackParamList } from "../types"
+
+// Define the navigation prop type
+type AlertsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, "Alerts">
 
 const AlertsScreen = () => {
   const [alerts, setAlerts] = useState<Alert[]>([])
@@ -25,8 +30,8 @@ const AlertsScreen = () => {
   const [refreshing, setRefreshing] = useState(false)
   const [locationPermission, setLocationPermission] = useState<boolean | null>(null)
 
-  const navigation = useNavigation()
-  const isFocused = useIsFocused()
+  // Use properly typed navigation
+  const navigation = useNavigation<AlertsScreenNavigationProp>()
 
   // Request location permission
   const requestLocationPermission = async () => {
@@ -90,8 +95,8 @@ const AlertsScreen = () => {
       await markAlertAsRead(alert.id)
     }
 
-    // Navigate to alert detail screen
-    navigation.navigate("AlertDetail" as never, { alertId: alert.id } as never)
+    // Navigate to alert detail screen with proper typing
+    navigation.navigate("AlertDetail", { alertId: alert.id })
   }
 
   // Initialize
@@ -111,10 +116,14 @@ const AlertsScreen = () => {
 
   // Fetch alerts when screen comes into focus
   useEffect(() => {
-    if (isFocused && locationPermission !== null) {
-      fetchWeatherAlerts()
-    }
-  }, [isFocused, locationPermission])
+    const unsubscribe = navigation.addListener("focus", () => {
+      if (locationPermission !== null) {
+        fetchWeatherAlerts()
+      }
+    })
+
+    return unsubscribe
+  }, [navigation, locationPermission])
 
   // Render alert severity icon
   const renderSeverityIcon = (severity: string) => {

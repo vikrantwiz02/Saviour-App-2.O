@@ -12,23 +12,27 @@ import {
   Share,
   Alert as RNAlert,
 } from "react-native"
-import { useRoute, useNavigation, type RouteProp } from "@react-navigation/native"
+import { useRoute, useNavigation } from "@react-navigation/native"
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import type { RouteProp } from "@react-navigation/native"
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons"
 import { doc, getDoc } from "firebase/firestore"
 import { db, auth } from "../firebase"
 import type { Alert } from "../services/alertService"
+import type { RootStackParamList } from "../types"
 
-type AlertDetailRouteParams = {
-  alertId: string
-}
+// Define the navigation and route prop types
+type AlertDetailScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, "AlertDetail">
+type AlertDetailScreenRouteProp = RouteProp<RootStackParamList, "AlertDetail">
 
 const AlertDetailScreen = () => {
   const [alert, setAlert] = useState<Alert | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const route = useRoute<RouteProp<Record<string, AlertDetailRouteParams>, string>>()
-  const navigation = useNavigation()
-  const { alertId } = route.params || {}
+  // Use properly typed navigation and route
+  const route = useRoute<AlertDetailScreenRouteProp>()
+  const navigation = useNavigation<AlertDetailScreenNavigationProp>()
+  const { alertId } = route.params
 
   // Fetch alert details
   useEffect(() => {
